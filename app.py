@@ -79,9 +79,14 @@ SEGMENTS_LIST = [
     "Dark Kitchen", "Food Truck", "Distribuidora"
 ]
 
+# ✅ Inclusivo / neutro
 PROFESSIONS_LIST = [
-    "Engenheiro de Alimentos", "Veterinário", "Zootecnista",
-    "Nutricionista", "Tecnólogo em Alimentos", "Químico"
+    "Engenheiro(a) de Alimentos",
+    "Veterinário(a)",
+    "Zootecnista",
+    "Nutricionista",
+    "Tecnólogo(a) em Alimentos",
+    "Químico(a)"
 ]
 
 DAYS_OF_WEEK = [
@@ -216,7 +221,7 @@ class AvailabilitySlot(db.Model):
     day_of_week = db.Column(db.String(20), nullable=False)
     start_time = db.Column(db.String(5), nullable=False)
     end_time = db.Column(db.String(5), nullable=False)
-    mode = db.Column(db.String(20), nullable=False)
+    mode = db.Column(db.String(20), nullable=False)  # Presencial / Remoto / Híbrido
     price = db.Column(db.String(50))
 
 class Demand(db.Model):
@@ -254,19 +259,14 @@ class Application(db.Model):
     demand = db.relationship("Demand", backref=db.backref("applications", lazy=True, cascade="all, delete-orphan"))
     professional = db.relationship("User", foreign_keys=[professional_user_id])
 
-# ✅ Convites (empresa / profissional)
 class Invite(db.Model):
     id = db.Column(db.Integer, primary_key=True)
-
     code = db.Column(db.String(32), unique=True, nullable=False, index=True)
     user_type = db.Column(db.String(20), nullable=False)  # company/professional
-
     max_uses = db.Column(db.Integer, default=1, nullable=False)
     used_count = db.Column(db.Integer, default=0, nullable=False)
-
     expires_at = db.Column(db.DateTime, nullable=True)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
-
     is_active = db.Column(db.Boolean, default=True)
 
 def validate_invite(code: str, user_type: str) -> Invite:
@@ -354,7 +354,6 @@ def admin_toggle_verify(profile_id):
     flash("Status de verificação atualizado.", "success")
     return redirect(url_for("admin_professionals"))
 
-# ✅ Admin: convites
 @app.route("/admin/invites", methods=["GET", "POST"])
 def admin_invites():
     admin_required()
@@ -415,7 +414,6 @@ def register():
             flash("Preencha todos os campos corretamente.", "danger")
             return redirect(url_for("register"))
 
-        # ✅ Convite obrigatório
         try:
             inv = validate_invite(invite_code, user_type)
         except ValueError as e:
@@ -437,7 +435,6 @@ def register():
             db.session.add(profile)
             db.session.commit()
 
-        # incrementa uso do convite
         inv.used_count += 1
         db.session.commit()
 
@@ -730,6 +727,7 @@ def search_professionals():
     service = (request.args.get("service") or "").strip()
     segment = (request.args.get("segment") or "").strip()
     verified = request.args.get("verified")
+    mode = (request.args.get("mode") or "").strip()  # Presencial / Remoto / Híbrido
 
     if city:
         query = query.filter(ProfessionalProfile.city.ilike(f"%{city}%"))
@@ -743,6 +741,14 @@ def search_professionals():
         query = query.filter(ProfessionalProfile.segments_json.ilike(f'%"{segment}"%'))
     if verified == "1":
         query = query.filter(ProfessionalProfile.is_verified.is_(True))
+
+    # ✅ Modalidade (Online/Remoto etc): filtra por disponibilidade
+    if mode:
+        query = query.join(
+            AvailabilitySlot, AvailabilitySlot.profile_id == ProfessionalProfile.id
+        ).filter(
+            AvailabilitySlot.mode == mode
+        ).distinct()
 
     professionals = query.order_by(ProfessionalProfile.id.desc()).all()
     return render_template("search.html", professionals=professionals, q=request.args)
