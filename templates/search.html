@@ -4,6 +4,7 @@
 
 <form action="{{ url_for('search_professionals') }}" method="GET" class="card p-4 mb-4 shadow-sm">
   <div class="row g-3">
+
     <div class="col-md-3">
       <label class="form-label">Cidade</label>
       <input type="text" name="city" class="form-control" placeholder="Ex: São Paulo" value="{{ q.get('city','') }}">
@@ -17,7 +18,7 @@
     <div class="col-md-3">
       <label class="form-label">Profissão</label>
       <select name="profession" class="form-select">
-        <option value="">Todas</option>
+        <option value="">Todos</option>
         {% for p in PROFESSIONS_LIST %}
           <option value="{{ p }}" {% if q.get('profession') == p %}selected{% endif %}>{{ p }}</option>
         {% endfor %}
@@ -44,7 +45,18 @@
       </select>
     </div>
 
-    <div class="col-md-4 d-flex align-items-end">
+    <div class="col-md-3">
+      <label class="form-label">Modalidade</label>
+      <select name="mode" class="form-select">
+        <option value="">Todas</option>
+        <option value="Remoto" {% if q.get('mode') == 'Remoto' %}selected{% endif %}>Online</option>
+        <option value="Presencial" {% if q.get('mode') == 'Presencial' %}selected{% endif %}>Presencial</option>
+        <option value="Híbrido" {% if q.get('mode') == 'Híbrido' %}selected{% endif %}>Híbrido</option>
+      </select>
+      <div class="form-text">“Online” filtra profissionais com disponibilidade Remota.</div>
+    </div>
+
+    <div class="col-md-3 d-flex align-items-end">
       <div class="form-check">
         <input class="form-check-input" type="checkbox" name="verified" value="1" id="verified"
                {% if q.get('verified') == '1' %}checked{% endif %}>
@@ -56,6 +68,7 @@
       <button type="submit" class="btn btn-primary">Filtrar</button>
       <a href="{{ url_for('search_professionals') }}" class="btn btn-outline-secondary">Limpar</a>
     </div>
+
   </div>
 </form>
 
@@ -64,14 +77,23 @@
     <div class="col-md-6 mb-3">
       <div class="card h-100 border-0 shadow-sm">
         <div class="card-body">
+
           <div class="d-flex justify-content-between align-items-start flex-wrap gap-2">
-            <div>
-              <h5 class="card-title mb-1">{{ prof.user.name }}</h5>
-              <div class="text-muted small">
-                {{ prof.profession or "Profissão não informada" }}
-                • {{ prof.city or "Cidade" }}{% if prof.state %}-{{ prof.state }}{% endif %}
+            <div class="d-flex gap-2 align-items-start">
+              {% if prof.profile_pic_url %}
+                <img src="{{ prof.profile_pic_url }}" alt="Foto"
+                     style="width:44px;height:44px;object-fit:cover;border-radius:10px;">
+              {% endif %}
+
+              <div>
+                <h5 class="card-title mb-1">{{ prof.user.name }}</h5>
+                <div class="text-muted small">
+                  {{ prof.profession or "Profissão não informada" }}
+                  • {{ prof.city or "Cidade" }}{% if prof.state %}-{{ prof.state }}{% endif %}
+                </div>
               </div>
             </div>
+
             {% if prof.is_verified %}
               <span class="badge text-bg-success">Verificado</span>
             {% endif %}
@@ -94,15 +116,19 @@
           </div>
 
           <div class="d-flex gap-2">
-            <a href="{{ url_for('professional_detail', profile_id=prof.id) }}" class="btn btn-outline-primary btn-sm w-100">
+            <a href="{{ url_for('professional_detail', profile_id=prof.id) }}"
+               class="btn btn-outline-primary btn-sm w-100">
               Ver perfil
             </a>
+
             {% if prof.whatsapp_url %}
-              <a href="{{ prof.whatsapp_url }}" target="_blank" rel="noopener" class="btn btn-success btn-sm w-100">
+              <a href="{{ prof.whatsapp_url }}" target="_blank" rel="noopener"
+                 class="btn btn-success btn-sm w-100">
                 WhatsApp
               </a>
             {% endif %}
           </div>
+
         </div>
       </div>
     </div>
