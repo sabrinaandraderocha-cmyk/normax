@@ -1,0 +1,48 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="row justify-content-center">
+  <div class="col-md-7">
+    <div class="card shadow-sm">
+      <div class="card-body p-4">
+        <h3 class="mb-3">Criar conta</h3>
+
+        <form method="POST">
+          <div class="mb-3">
+            <label class="form-label">Nome</label>
+            <input class="form-control" name="name" required>
+          </div>
+
+          <div class="mb-3">
+            <label class="form-label">Email</label>
+            <input class="form-control" name="email" type="email" required>
+          </div>
+
+          <div class="mb-3">
+            <label class="form-label">Senha</label>
+            <input class="form-control" name="password" type="password" required>
+          </div>
+
+          <div class="mb-3">
+            <label class="form-label">Tipo de conta</label>
+            <select class="form-select" name="user_type" required>
+              <option value="professional">Profissional</option>
+              <option value="company">Empresa</option>
+            </select>
+          </div>
+
+          <div class="mb-3">
+            <label class="form-label">Código de convite</label>
+            <input class="form-control" name="invite_code" required placeholder="Ex: ABC123...">
+          </div>
+
+          <button class="btn btn-primary w-100" type="submit">Cadastrar</button>
+        </form>
+
+        <div class="text-muted mt-3">
+          Já tem conta? <a href="{{ url_for('login') }}">Entrar</a>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,97 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
+  <h2 class="mb-0">Admin • Convites</h2>
+  <div class="d-flex gap-2">
+    <a class="btn btn-outline-primary btn-sm" href="{{ url_for('admin_professionals') }}">Profissionais</a>
+    <a class="btn btn-outline-secondary btn-sm" href="{{ url_for('admin_logout') }}">Sair do admin</a>
+  </div>
+</div>
+
+<div class="card shadow-sm mb-3">
+  <div class="card-body">
+    <h5 class="mb-3">Gerar novo convite</h5>
+
+    <form method="POST" class="row g-3">
+      <div class="col-md-4">
+        <label class="form-label">Tipo</label>
+        <select name="user_type" class="form-select" required>
+          <option value="professional">Profissional</option>
+          <option value="company">Empresa</option>
+        </select>
+      </div>
+
+      <div class="col-md-4">
+        <label class="form-label">Quantidade de usos</label>
+        <input type="number" name="max_uses" class="form-control" value="1" min="1" required>
+      </div>
+
+      <div class="col-md-4">
+        <label class="form-label">Validade (dias)</label>
+        <input type="number" name="days_valid" class="form-control" value="30" min="1" required>
+      </div>
+
+      <div class="col-12 text-end">
+        <button class="btn btn-primary" type="submit">
+          <i class="fa-solid fa-plus me-1"></i> Gerar convite
+        </button>
+      </div>
+    </form>
+
+    <div class="alert alert-info mt-3 mb-0 small">
+      <i class="fa-solid fa-circle-info me-1"></i>
+      Depois de gerar, copie o código e envie para a pessoa cadastrar em <code>/register</code>.
+    </div>
+  </div>
+</div>
+
+<div class="card shadow-sm">
+  <div class="card-body">
+    <h5 class="mb-3">Convites criados</h5>
+
+    <div class="table-responsive">
+      <table class="table table-sm align-middle">
+        <thead>
+          <tr>
+            <th>Código</th>
+            <th>Tipo</th>
+            <th>Usos</th>
+            <th>Expira</th>
+            <th>Status</th>
+            <th class="text-end">Ação</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for i in invites %}
+            <tr>
+              <td><code>{{ i.code }}</code></td>
+              <td>{{ i.user_type }}</td>
+              <td>{{ i.used_count }}/{{ i.max_uses }}</td>
+              <td>{% if i.expires_at %}{{ i.expires_at.strftime('%d/%m/%Y') }}{% else %}—{% endif %}</td>
+              <td>
+                {% if i.is_active %}
+                  <span class="badge text-bg-success">Ativo</span>
+                {% else %}
+                  <span class="badge text-bg-secondary">Desativado</span>
+                {% endif %}
+              </td>
+              <td class="text-end">
+                <form method="POST" action="{{ url_for('admin_invite_toggle', invite_id=i.id) }}">
+                  <button class="btn btn-outline-secondary btn-sm" type="submit">
+                    Ativar/Desativar
+                  </button>
+                </form>
+              </td>
+            </tr>
+          {% else %}
+            <tr>
+              <td colspan="6" class="text-muted">Nenhum convite criado ainda.</td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+
+  </div>
+</div>
+{% endblock %}

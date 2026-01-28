@@ -1,0 +1,39 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="row justify-content-center">
+  <div class="col-md-6">
+    <div class="card shadow-sm">
+      <div class="card-body p-4">
+        <h3 class="mb-3">Entrar</h3>
+
+        <form method="POST">
+          <div class="mb-3">
+            <label class="form-label">Email</label>
+            <input class="form-control" name="email" type="email" required>
+          </div>
+          <div class="mb-3">
+            <label class="form-label">Senha</label>
+            <input class="form-control" name="password" type="password" required>
+          </div>
+          <button class="btn btn-primary w-100" type="submit">Entrar</button>
+        </form>
+
+        <hr class="my-4">
+
+        <a class="btn btn-success w-100" target="_blank" rel="noopener"
+           href="https://wa.me/553498784743?text=Ol%C3%A1!%20Quero%20participar%20do%20Normax.">
+          <i class="fa-brands fa-whatsapp me-2"></i>
+          Quer participar do sistema? Entre em contato
+        </a>
+        <div class="text-muted small mt-2 text-center">
+          WhatsApp: (34) 99878-4743
+        </div>
+
+        <div class="text-muted mt-3">
+          Não tem conta? <a href="{{ url_for('register') }}">Cadastrar</a>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

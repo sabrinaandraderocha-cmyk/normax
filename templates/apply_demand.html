@@ -1,0 +1,34 @@
+{% extends "base.html" %}
+{% block content %}
+<h2 class="mb-3">Candidatar-se</h2>
+
+<div class="card shadow-sm">
+  <div class="card-body">
+    <h5 class="mb-1">{{ demand.title }}</h5>
+    <div class="text-muted small mb-3">
+      {{ demand.segment or "—" }} • {{ demand.service_type or "—" }} • {{ demand.city or "—" }}{% if demand.state %}-{{ demand.state }}{% endif %}
+    </div>
+    <p>{{ demand.description }}</p>
+
+    <hr>
+
+    <form method="POST">
+      <div class="mb-3">
+        <label class="form-label">Mensagem (opcional)</label>
+        <textarea class="form-control" name="message" rows="4"
+          placeholder="Explique sua experiência e como você pode ajudar."></textarea>
+      </div>
+
+      <div class="mb-3">
+        <label class="form-label">Valor proposto (opcional)</label>
+        <input class="form-control" name="proposed_price" placeholder="Ex: R$ 350,00 / projeto">
+      </div>
+
+      <div class="d-flex gap-2">
+        <button class="btn btn-success" type="submit">Enviar candidatura</button>
+        <a class="btn btn-outline-secondary" href="{{ url_for('list_demands') }}">Cancelar</a>
+      </div>
+    </form>
+  </div>
+</div>
+{% endblock %}

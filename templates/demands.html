@@ -1,0 +1,28 @@
+{% extends "base.html" %}
+{% block content %}
+<h2 class="mb-3">Demandas abertas</h2>
+<p class="text-muted">Escolha uma demanda e envie sua candidatura.</p>
+
+<div class="row">
+  {% for d in demands %}
+    <div class="col-md-6 mb-3">
+      <div class="card shadow-sm h-100">
+        <div class="card-body">
+          <h5 class="mb-1">{{ d.title }}</h5>
+          <div class="text-muted small mb-2">
+            {{ d.segment or "—" }} • {{ d.service_type or "—" }} • {{ d.city or "—" }}{% if d.state %}-{{ d.state }}{% endif %}
+          </div>
+          <p class="mb-3">{{ d.description }}</p>
+
+          <a class="btn btn-primary btn-sm w-100"
+             href="{{ url_for('apply_demand', demand_id=d.id) }}">
+            Candidatar-se
+          </a>
+        </div>
+      </div>
+    </div>
+  {% else %}
+    <div class="text-muted">Nenhuma demanda aberta no momento.</div>
+  {% endfor %}
+</div>
+{% endblock %}

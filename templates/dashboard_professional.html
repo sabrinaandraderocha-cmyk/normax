@@ -1,0 +1,180 @@
+{% extends "base.html" %}
+{% block content %}
+<h2>Painel do Profissional</h2>
+<p class="text-muted">Atualize seu perfil para aparecer nas buscas.</p>
+
+<div class="card shadow-sm mb-4">
+  <div class="card-body">
+    <form action="{{ url_for('update_profile') }}" method="POST" enctype="multipart/form-data">
+
+      <div class="row mb-3 g-3">
+        <div class="col-md-6">
+          <label class="form-label">Profissão</label>
+          <select name="profession" class="form-select">
+            <option value="">Selecione</option>
+            {% for prof in PROFESSIONS_LIST %}
+              <option value="{{ prof }}" {% if profile.profession == prof %}selected{% endif %}>{{ prof }}</option>
+            {% endfor %}
+          </select>
+        </div>
+
+        <div class="col-md-6">
+          <label class="form-label">Nº Registro (CRQ/CRMV/CREA)</label>
+          <input type="text" name="registry_number" class="form-control" value="{{ profile.registry_number or '' }}">
+        </div>
+      </div>
+
+      <div class="row mb-3 g-3">
+        <div class="col-md-8">
+          <label class="form-label">Cidade</label>
+          <input type="text" name="city" class="form-control" value="{{ profile.city or '' }}">
+        </div>
+        <div class="col-md-4">
+          <label class="form-label">UF</label>
+          <input type="text" name="state" class="form-control" value="{{ profile.state or '' }}" placeholder="Ex: MG">
+        </div>
+      </div>
+
+      <div class="mb-3">
+        <label class="form-label">WhatsApp (para contato)</label>
+        <input type="text" name="whatsapp" class="form-control" value="{{ profile.whatsapp or '' }}"
+               placeholder="Ex: (34) 99999-9999 ou 5534999999999">
+        <div class="form-text">O link wa.me será gerado automaticamente.</div>
+      </div>
+
+      <div class="mb-3">
+        <label class="form-label">Foto de perfil (opcional)</label>
+        <!-- ✅ TEM QUE SER profile_pic (bate com o app.py) -->
+        <input type="file" name="profile_pic" class="form-control"
+               accept=".png,.jpg,.jpeg,.webp,image/png,image/jpeg,image/webp">
+
+        {% if profile.profile_pic_url %}
+          <div class="mt-2">
+            <img src="{{ profile.profile_pic_url }}" alt="Foto do profissional"
+                 style="max-width: 160px; border-radius: 12px; object-fit: cover;">
+          </div>
+        {% endif %}
+      </div>
+
+      <div class="mb-3">
+        <label class="fw-bold">Segmentos que atende</label>
+        <div class="row mt-2">
+          {% for seg in SEGMENTS_LIST %}
+            <div class="col-md-4">
+              <label class="form-check">
+                <input class="form-check-input" type="checkbox" name="segments" value="{{ seg }}"
+                  {% if seg in profile.segments %}checked{% endif %}>
+                <span class="form-check-label">{{ seg }}</span>
+              </label>
+            </div>
+          {% endfor %}
+        </div>
+      </div>
+
+      <div class="mb-3">
+        <label class="fw-bold">Serviços oferecidos</label>
+        <div class="row mt-2">
+          {% for serv in SERVICES_LIST %}
+            <div class="col-md-6">
+              <label class="form-check">
+                <input class="form-check-input" type="checkbox" name="services" value="{{ serv }}"
+                  {% if serv in profile.services %}checked{% endif %}>
+                <span class="form-check-label">{{ serv }}</span>
+              </label>
+            </div>
+          {% endfor %}
+        </div>
+      </div>
+
+      <div class="mb-3">
+        <label class="form-label">Bio (experiência e diferenciais)</label>
+        <textarea name="bio" class="form-control" rows="4">{{ profile.bio or '' }}</textarea>
+      </div>
+
+      <div class="d-flex gap-2 flex-wrap">
+        <button type="submit" class="btn btn-primary">Salvar Perfil</button>
+        <a class="btn btn-outline-secondary" href="{{ url_for('professional_detail', profile_id=profile.id) }}">
+          Ver perfil
+        </a>
+      </div>
+
+    </form>
+  </div>
+</div>
+
+<!-- ===================================================== -->
+<!-- DISPONIBILIDADE (AGENDA) -->
+<!-- ===================================================== -->
+<h3 class="mb-3">Disponibilidade e valores</h3>
+<p class="text-muted">Cadastre os horários em que você atende (com modalidade e valor).</p>
+
+<div class="card shadow-sm mb-3">
+  <div class="card-body">
+    <form action="{{ url_for('add_availability') }}" method="POST" class="row g-3">
+
+      <div class="col-md-4">
+        <label class="form-label">Dia da semana</label>
+        <select name="day_of_week" class="form-select" required>
+          {% for d in DAYS_OF_WEEK %}
+            <option value="{{ d }}">{{ d }}</option>
+          {% endfor %}
+        </select>
+      </div>
+
+      <div class="col-md-2">
+        <label class="form-label">Início</label>
+        <input type="time" name="start_time" class="form-control" required>
+      </div>
+
+      <div class="col-md-2">
+        <label class="form-label">Fim</label>
+        <input type="time" name="end_time" class="form-control" required>
+      </div>
+
+      <div class="col-md-2">
+        <label class="form-label">Modalidade</label>
+        <select name="mode" class="form-select" required>
+          <option value="Presencial">Presencial</option>
+          <option value="Remoto">Remoto</option>
+          <option value="Híbrido">Híbrido</option>
+        </select>
+      </div>
+
+      <div class="col-md-2">
+        <label class="form-label">Valor (opcional)</label>
+        <input type="text" name="price" class="form-control" placeholder="Ex: R$ 200/visita">
+      </div>
+
+      <div class="col-12 text-end">
+        <button type="submit" class="btn btn-success">
+          + Adicionar horário
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
+
+{% if slots and slots|length > 0 %}
+  <div class="list-group shadow-sm">
+    {% for s in slots %}
+      <div class="list-group-item d-flex justify-content-between align-items-center flex-wrap gap-2">
+        <div>
+          <div class="fw-bold">{{ s.day_of_week }}</div>
+          <div class="text-muted small">
+            {{ s.start_time }} às {{ s.end_time }} • {{ s.mode }}
+            {% if s.price %} • {{ s.price }}{% endif %}
+          </div>
+        </div>
+
+        <a class="btn btn-outline-danger btn-sm"
+           href="{{ url_for('delete_availability', slot_id=s.id) }}">
+          Remover
+        </a>
+      </div>
+    {% endfor %}
+  </div>
+{% else %}
+  <div class="text-muted">Você ainda não cadastrou horários.</div>
+{% endif %}
+
+{% endblock %}

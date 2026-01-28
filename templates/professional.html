@@ -1,0 +1,161 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="row">
+
+  <div class="col-lg-4 mb-4">
+    <div class="card shadow-sm border-0 text-center p-4 h-100">
+
+      <div class="mb-3">
+        {% if profile.profile_pic_url %}
+          <img src="{{ profile.profile_pic_url }}"
+               class="rounded-circle img-thumbnail shadow-sm"
+               style="width: 160px; height: 160px; object-fit: cover;"
+               alt="{{ profile.user.name }}">
+        {% else %}
+          <div class="bg-light text-secondary rounded-circle d-flex align-items-center justify-content-center mx-auto border"
+               style="width: 160px; height: 160px;">
+             <i class="fa-solid fa-user fa-4x"></i>
+          </div>
+        {% endif %}
+      </div>
+
+      <h3 class="fw-bold text-primary mb-1">{{ profile.user.name }}</h3>
+      <p class="text-muted fw-bold mb-1">{{ profile.profession or "Profissão não informada" }}</p>
+
+      <div class="mb-3">
+        {% if profile.is_verified %}
+          <span class="badge bg-success">
+            <i class="fa-solid fa-check-circle me-1"></i> Verificado
+          </span>
+        {% endif %}
+
+        <span class="badge bg-light text-dark border">
+          <i class="fa-solid fa-location-dot me-1"></i>
+          {{ profile.city or "Cidade" }}{% if profile.state %} - {{ profile.state }}{% endif %}
+        </span>
+      </div>
+
+      {% if profile.registry_number %}
+        <p class="small text-muted mb-4">Registro: {{ profile.registry_number }}</p>
+      {% endif %}
+
+      <hr>
+
+      <div class="d-grid gap-2">
+
+        {# Só empresa envia mensagem para profissional #}
+        {% if current_user.is_authenticated
+              and current_user.user_type == "company"
+              and current_user.id != profile.user.id %}
+          <a href="{{ url_for('send_message', recipient_id=profile.user.id) }}" class="btn btn-primary btn-lg">
+            <i class="fa-solid fa-envelope me-2"></i> Enviar Mensagem
+          </a>
+        {% endif %}
+
+        {% if profile.whatsapp_url %}
+          <a href="{{ profile.whatsapp_url }}" target="_blank" rel="noopener" class="btn btn-success btn-lg">
+            <i class="fa-brands fa-whatsapp me-2"></i> Chamar no WhatsApp
+          </a>
+        {% endif %}
+
+        {% if current_user.is_authenticated and current_user.id == profile.user.id %}
+          <a href="{{ url_for('dashboard') }}" class="btn btn-outline-secondary">
+            <i class="fa-solid fa-pen-to-square me-2"></i> Editar meu Perfil
+          </a>
+        {% endif %}
+      </div>
+
+    </div>
+  </div>
+
+  <div class="col-lg-8">
+
+    <div class="card shadow-sm border-0 p-4 mb-4">
+      <h4 class="fw-bold mb-3 text-dark">
+        <i class="fa-solid fa-user-tag me-2 text-primary"></i>Sobre
+      </h4>
+
+      {% if profile.bio %}
+        <p class="text-secondary" style="white-space: pre-line;">{{ profile.bio }}</p>
+      {% else %}
+        <p class="text-muted fst-italic">O profissional ainda não adicionou uma biografia.</p>
+      {% endif %}
+
+      <div class="mt-4">
+        <h5 class="fw-bold fs-6 text-uppercase text-muted mb-3">Serviços Oferecidos</h5>
+        <div class="d-flex flex-wrap gap-2">
+          {% if profile.services %}
+            {% for service in profile.services %}
+              <span class="badge bg-primary bg-opacity-10 text-primary border border-primary px-3 py-2 rounded-pill">
+                <i class="fa-solid fa-check me-1"></i> {{ service }}
+              </span>
+            {% endfor %}
+          {% else %}
+            <span class="text-muted small">Nenhum serviço listado.</span>
+          {% endif %}
+        </div>
+      </div>
+
+      <div class="mt-4">
+        <h5 class="fw-bold fs-6 text-uppercase text-muted mb-3">Segmentos Atendidos</h5>
+        <div class="d-flex flex-wrap gap-2">
+          {% if profile.segments %}
+            {% for seg in profile.segments %}
+              <span class="badge bg-secondary bg-opacity-10 text-secondary border px-3 py-2 rounded-pill">
+                {{ seg }}
+              </span>
+            {% endfor %}
+          {% else %}
+            <span class="text-muted small">Nenhum segmento listado.</span>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+
+    <div class="card shadow-sm border-0 p-4">
+      <h4 class="fw-bold mb-4 text-dark">
+        <i class="fa-solid fa-calendar-days me-2 text-success"></i>Disponibilidade e Valores
+      </h4>
+
+      {% if profile.availability_slots %}
+        <div class="row g-3">
+          {% for slot in profile.availability_slots %}
+            <div class="col-md-6">
+              <div class="border rounded p-3 h-100 bg-light position-relative overflow-hidden">
+                <div class="position-absolute top-0 start-0 bottom-0 bg-success" style="width: 4px;"></div>
+
+                <div class="d-flex justify-content-between align-items-center mb-2 ps-2">
+                  <span class="fw-bold text-dark">{{ slot.day_of_week }}</span>
+                  <span class="badge bg-white text-dark border shadow-sm">{{ slot.mode }}</span>
+                </div>
+
+                <div class="ps-2 text-muted mb-2">
+                  <i class="fa-regular fa-clock me-1"></i> {{ slot.start_time }} às {{ slot.end_time }}
+                </div>
+
+                <div class="ps-2 fw-bold text-success fs-5">
+                  {{ slot.price or "Valor a combinar" }}
+                </div>
+              </div>
+            </div>
+          {% endfor %}
+        </div>
+
+        <div class="alert alert-info mt-4 mb-0 small">
+          <i class="fa-solid fa-circle-info me-1"></i>
+          Os horários acima são de referência. Envie uma mensagem para confirmar o agendamento.
+        </div>
+
+      {% else %}
+        <div class="text-center py-4 bg-light rounded border border-dashed">
+          <i class="fa-regular fa-calendar-xmark fa-2x text-muted mb-2"></i>
+          <p class="text-muted mb-0">Este profissional não informou horários disponíveis publicamente.</p>
+          <small class="text-muted">Entre em contato para verificar disponibilidade.</small>
+        </div>
+      {% endif %}
+    </div>
+
+  </div>
+</div>
+{% endblock %}

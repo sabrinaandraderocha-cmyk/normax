@@ -1,0 +1,42 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
+  <h2 class="mb-0">Admin • Profissionais</h2>
+  <div class="d-flex gap-2">
+    <a class="btn btn-outline-primary btn-sm" href="{{ url_for('admin_invites') }}">Convites</a>
+    <a class="btn btn-outline-secondary btn-sm" href="{{ url_for('admin_logout') }}">Sair do admin</a>
+  </div>
+</div>
+
+<div class="card shadow-sm">
+  <div class="card-body">
+    {% for p in profs %}
+      <div class="d-flex justify-content-between align-items-center border-bottom py-3 flex-wrap gap-2">
+        <div>
+          <div class="fw-bold">{{ p.user.name }}</div>
+          <div class="text-muted small">
+            {{ p.profession or "—" }} • {{ p.city or "—" }}{% if p.state %}-{{ p.state }}{% endif %}
+          </div>
+          <div class="small">
+            {% if p.is_verified %}
+              <span class="badge text-bg-success">Verificado</span>
+            {% else %}
+              <span class="badge text-bg-secondary">Não verificado</span>
+            {% endif %}
+          </div>
+        </div>
+
+        <form method="POST" action="{{ url_for('admin_toggle_verify', profile_id=p.id) }}">
+          {% if p.is_verified %}
+            <button class="btn btn-outline-danger btn-sm" type="submit">Desverificar</button>
+          {% else %}
+            <button class="btn btn-success btn-sm" type="submit">Verificar</button>
+          {% endif %}
+        </form>
+      </div>
+    {% else %}
+      <div class="text-muted">Nenhum profissional cadastrado.</div>
+    {% endfor %}
+  </div>
+</div>
+{% endblock %}

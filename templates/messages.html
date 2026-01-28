@@ -1,0 +1,37 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="row justify-content-center">
+  <div class="col-md-10">
+    <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
+      <h2 class="mb-0">Minhas Mensagens</h2>
+      <a href="{{ url_for('dashboard') }}" class="btn btn-outline-primary btn-sm">
+        <i class="fa-solid fa-arrow-left me-1"></i> Voltar ao painel
+      </a>
+    </div>
+
+    <div class="list-group shadow-sm">
+      {% for msg in messages %}
+        <a href="{{ url_for('send_message', recipient_id=msg.sender.id) }}"
+           class="list-group-item list-group-item-action flex-column align-items-start p-4">
+
+          <div class="d-flex w-100 justify-content-between">
+            <h5 class="mb-1 fw-bold text-primary">{{ msg.sender.name }}</h5>
+            <small class="text-muted">{{ msg.timestamp.strftime('%d/%m %H:%M') }}</small>
+          </div>
+
+          <p class="mb-2 mt-2">{{ msg.body }}</p>
+
+          <small class="text-muted">
+            <i class="fa-solid fa-reply me-1"></i> Clique para responder
+          </small>
+        </a>
+      {% else %}
+        <div class="text-center py-5 bg-white">
+          <i class="fa-regular fa-envelope-open fa-3x text-muted mb-3"></i>
+          <p class="text-muted mb-0">Nenhuma mensagem recebida ainda.</p>
+        </div>
+      {% endfor %}
+    </div>
+  </div>
+</div>
+{% endblock %}

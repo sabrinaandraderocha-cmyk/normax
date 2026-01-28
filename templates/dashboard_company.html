@@ -1,0 +1,60 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="d-flex align-items-center justify-content-between mb-3 flex-wrap gap-2">
+  <div>
+    <h2 class="mb-0">Painel da Empresa</h2>
+    <div class="text-muted">Publique demandas e receba candidaturas.</div>
+  </div>
+  <a class="btn btn-primary" href="{{ url_for('create_demand') }}">+ Nova Demanda</a>
+</div>
+
+{% if demands %}
+  <div class="row">
+    {% for d in demands %}
+      <div class="col-md-6 mb-3">
+        <div class="card shadow-sm h-100">
+          <div class="card-body">
+
+            <div class="d-flex justify-content-between align-items-start gap-2">
+              <h5 class="mb-1">{{ d.title }}</h5>
+              {% if d.status == "Fechado" %}
+                <span class="badge text-bg-success">Concluída</span>
+              {% else %}
+                <span class="badge text-bg-secondary">{{ d.status }}</span>
+              {% endif %}
+            </div>
+
+            <div class="text-muted small mb-2">
+              {{ d.segment or "—" }} • {{ d.service_type or "—" }} • {{ d.city or "—" }}{% if d.state %}-{{ d.state }}{% endif %}
+            </div>
+
+            <p class="mb-3">{{ d.description }}</p>
+
+            <div class="d-flex gap-2 flex-wrap">
+              <a class="btn btn-outline-primary btn-sm"
+                 href="{{ url_for('view_applications', demand_id=d.id) }}">
+                Ver candidaturas
+              </a>
+
+              {% if d.status != "Fechado" %}
+                <form method="POST" action="{{ url_for('close_demand', demand_id=d.id) }}">
+                  <button type="submit" class="btn btn-outline-success btn-sm">
+                    Marcar como concluída
+                  </button>
+                </form>
+              {% endif %}
+            </div>
+
+          </div>
+        </div>
+      </div>
+    {% endfor %}
+  </div>
+{% else %}
+  <div class="card shadow-sm">
+    <div class="card-body text-muted">
+      Você ainda não publicou nenhuma demanda.
+    </div>
+  </div>
+{% endif %}
+{% endblock %}

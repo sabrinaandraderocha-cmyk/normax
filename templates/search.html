@@ -1,0 +1,115 @@
+{% extends "base.html" %}
+{% block content %}
+<h2 class="mb-4">Encontrar Profissionais</h2>
+
+<form action="{{ url_for('search_professionals') }}" method="GET" class="card p-4 mb-4 shadow-sm">
+  <div class="row g-3">
+    <div class="col-md-3">
+      <label class="form-label">Cidade</label>
+      <input type="text" name="city" class="form-control" placeholder="Ex: São Paulo" value="{{ q.get('city','') }}">
+    </div>
+
+    <div class="col-md-2">
+      <label class="form-label">UF</label>
+      <input type="text" name="state" class="form-control" placeholder="SP" value="{{ q.get('state','') }}">
+    </div>
+
+    <div class="col-md-3">
+      <label class="form-label">Profissão</label>
+      <select name="profession" class="form-select">
+        <option value="">Todas</option>
+        {% for p in PROFESSIONS_LIST %}
+          <option value="{{ p }}" {% if q.get('profession') == p %}selected{% endif %}>{{ p }}</option>
+        {% endfor %}
+      </select>
+    </div>
+
+    <div class="col-md-4">
+      <label class="form-label">Serviço</label>
+      <select name="service" class="form-select">
+        <option value="">Todos</option>
+        {% for s in SERVICES_LIST %}
+          <option value="{{ s }}" {% if q.get('service') == s %}selected{% endif %}>{{ s }}</option>
+        {% endfor %}
+      </select>
+    </div>
+
+    <div class="col-md-4">
+      <label class="form-label">Segmento</label>
+      <select name="segment" class="form-select">
+        <option value="">Todos</option>
+        {% for seg in SEGMENTS_LIST %}
+          <option value="{{ seg }}" {% if q.get('segment') == seg %}selected{% endif %}>{{ seg }}</option>
+        {% endfor %}
+      </select>
+    </div>
+
+    <div class="col-md-4 d-flex align-items-end">
+      <div class="form-check">
+        <input class="form-check-input" type="checkbox" name="verified" value="1" id="verified"
+               {% if q.get('verified') == '1' %}checked{% endif %}>
+        <label class="form-check-label" for="verified">Somente verificados</label>
+      </div>
+    </div>
+
+    <div class="col-12 text-end">
+      <button type="submit" class="btn btn-primary">Filtrar</button>
+      <a href="{{ url_for('search_professionals') }}" class="btn btn-outline-secondary">Limpar</a>
+    </div>
+  </div>
+</form>
+
+<div class="row">
+  {% for prof in professionals %}
+    <div class="col-md-6 mb-3">
+      <div class="card h-100 border-0 shadow-sm">
+        <div class="card-body">
+          <div class="d-flex justify-content-between align-items-start flex-wrap gap-2">
+            <div>
+              <h5 class="card-title mb-1">{{ prof.user.name }}</h5>
+              <div class="text-muted small">
+                {{ prof.profession or "Profissão não informada" }}
+                • {{ prof.city or "Cidade" }}{% if prof.state %}-{{ prof.state }}{% endif %}
+              </div>
+            </div>
+            {% if prof.is_verified %}
+              <span class="badge text-bg-success">Verificado</span>
+            {% endif %}
+          </div>
+
+          {% if prof.bio %}
+            <p class="mt-3 mb-3 small">{{ prof.bio }}</p>
+          {% endif %}
+
+          <hr>
+
+          <small class="text-muted fw-bold">Serviços</small>
+          <div class="small mb-2">
+            {{ prof.services|join(", ") if prof.services else "—" }}
+          </div>
+
+          <small class="text-muted fw-bold">Segmentos</small>
+          <div class="small mb-3">
+            {{ prof.segments|join(", ") if prof.segments else "—" }}
+          </div>
+
+          <div class="d-flex gap-2">
+            <a href="{{ url_for('professional_detail', profile_id=prof.id) }}" class="btn btn-outline-primary btn-sm w-100">
+              Ver perfil
+            </a>
+            {% if prof.whatsapp_url %}
+              <a href="{{ prof.whatsapp_url }}" target="_blank" rel="noopener" class="btn btn-success btn-sm w-100">
+                WhatsApp
+              </a>
+            {% endif %}
+          </div>
+        </div>
+      </div>
+    </div>
+  {% else %}
+    <div class="col-12 text-center text-muted">
+      <p>Nenhum profissional encontrado com esses filtros.</p>
+    </div>
+  {% endfor %}
+</div>
+{% endblock %}
