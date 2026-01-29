@@ -3,6 +3,10 @@ import json
 import secrets
 from datetime import datetime, timedelta
 
+import cloudinary
+import cloudinary.uploader
+import cloudinary.api
+
 from werkzeug.utils import secure_filename
 from werkzeug.security import generate_password_hash, check_password_hash
 
@@ -35,22 +39,28 @@ app.config["SQLALCHEMY_DATABASE_URI"] = db_url
 app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 
 # =========================================================
+# CLOUDINARY CONFIG
+# =========================================================
+cloudinary.config(
+    cloud_name=os.environ.get("CLOUDINARY_CLOUD_NAME"),
+    api_key=os.environ.get("CLOUDINARY_API_KEY"),
+    api_secret=os.environ.get("CLOUDINARY_API_SECRET"),
+    secure=True
+)
+
+# =========================================================
 # ADMIN (SIMPLES)
 # =========================================================
-ADMIN_KEY = os.environ.get("ADMIN_KEY", "admin123")  # mude isso em produção
+ADMIN_KEY = os.environ.get("ADMIN_KEY", "admin123")
 
 def admin_required():
     if not session.get("is_admin"):
         abort(403)
 
 # =========================================================
-# UPLOADS
+# UPLOADS (validação de extensão)
 # =========================================================
-UPLOAD_FOLDER = os.path.join(app.root_path, "static", "uploads")
 ALLOWED_EXTENSIONS = {".png", ".jpg", ".jpeg", ".webp"}
-app.config["UPLOAD_FOLDER"] = UPLOAD_FOLDER
-app.config["MAX_CONTENT_LENGTH"] = 4 * 1024 * 1024  # 4MB
-os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 
 # =========================================================
 # DB / LOGIN
@@ -79,7 +89,6 @@ SEGMENTS_LIST = [
     "Dark Kitchen", "Food Truck", "Distribuidora"
 ]
 
-# ✅ Inclusivo / neutro
 PROFESSIONS_LIST = [
     "Engenheiro(a) de Alimentos",
     "Veterinário(a)",
@@ -121,15 +130,29 @@ def allowed_file(filename: str) -> bool:
     return ext in ALLOWED_EXTENSIONS
 
 def save_profile_pic(file_storage, user_id: int) -> str:
+    """
+    Faz upload no Cloudinary e retorna a URL segura (secure_url).
+    Retorna "" se falhar.
+    """
     if not file_storage or not getattr(file_storage, "filename", ""):
         return ""
+
     original = secure_filename(file_storage.filename)
     if not original or not allowed_file(original):
         return ""
-    _, ext = os.path.splitext(original.lower())
-    stored = f"user_{user_id}_{int(datetime.utcnow().timestamp())}{ext}"
-    file_storage.save(os.path.join(UPLOAD_FOLDER, stored))
-    return stored
+
+    try:
+        result = cloudinary.uploader.upload(
+            file_storage,
+            folder="normax/profiles",
+            public_id=f"user_{user_id}",
+            overwrite=True,
+            resource_type="image"
+        )
+        return result.get("secure_url", "") or ""
+    except Exception as e:
+        print("Erro Cloudinary:", e)
+        return ""
 
 def normalize_whatsapp(raw: str) -> str:
     if not raw:
@@ -166,7 +189,7 @@ class User(UserMixin, db.Model):
     email = db.Column(db.String(150), unique=True, nullable=False, index=True)
     password_hash = db.Column(db.String(255), nullable=False)
     name = db.Column(db.String(150), nullable=False)
-    user_type = db.Column(db.String(20), nullable=False)  # company / professional
+    user_type = db.Column(db.String(20), nullable=False)
 
     professional_profile = db.relationship("ProfessionalProfile", backref="user", uselist=False)
 
@@ -188,15 +211,18 @@ class ProfessionalProfile(db.Model):
     whatsapp = db.Column(db.String(40))
     bio = db.Column(db.Text)
 
-    profile_pic = db.Column(db.String(255))
+    # Agora guarda URL do Cloudinary
+    profile_pic = db.Column(db.Text)
     is_verified = db.Column(db.Boolean, default=False)
 
     services_json = db.Column(db.Text, default="[]")
     segments_json = db.Column(db.Text, default="[]")
 
     availability_slots = db.relationship(
-        "AvailabilitySlot", backref="profile",
-        lazy=True, cascade="all, delete-orphan"
+        "AvailabilitySlot",
+        backref="profile",
+        lazy=True,
+        cascade="all, delete-orphan"
     )
 
     @property
@@ -209,7 +235,7 @@ class ProfessionalProfile(db.Model):
 
     @property
     def profile_pic_url(self):
-        return f"/static/uploads/{self.profile_pic}" if self.profile_pic else ""
+        return self.profile_pic or ""
 
     @property
     def whatsapp_url(self):
@@ -233,7 +259,7 @@ class Demand(db.Model):
     service_type = db.Column(db.String(100))
     city = db.Column(db.String(100))
     state = db.Column(db.String(2))
-    status = db.Column(db.String(20), default="Aberto")  # Aberto / Fechado
+    status = db.Column(db.String(20), default="Aberto")
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
 
 class Message(db.Model):
@@ -262,7 +288,7 @@ class Application(db.Model):
 class Invite(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     code = db.Column(db.String(32), unique=True, nullable=False, index=True)
-    user_type = db.Column(db.String(20), nullable=False)  # company/professional
+    user_type = db.Column(db.String(20), nullable=False)
     max_uses = db.Column(db.Integer, default=1, nullable=False)
     used_count = db.Column(db.Integer, default=0, nullable=False)
     expires_at = db.Column(db.DateTime, nullable=True)
@@ -512,11 +538,11 @@ def update_profile():
 
     file = request.files.get("profile_pic")
     if file and file.filename:
-        stored = save_profile_pic(file, current_user.id)
-        if not stored:
-            flash("Imagem não aceita. Use PNG/JPG/JPEG/WEBP (até 4MB).", "danger")
+        stored_url = save_profile_pic(file, current_user.id)
+        if not stored_url:
+            flash("Imagem não aceita ou falha no upload.", "danger")
             return redirect(url_for("dashboard"))
-        profile.profile_pic = stored
+        profile.profile_pic = stored_url
         flash("Foto atualizada com sucesso!", "success")
 
     db.session.commit()
@@ -742,7 +768,7 @@ def search_professionals():
     if verified == "1":
         query = query.filter(ProfessionalProfile.is_verified.is_(True))
 
-    # ✅ Modalidade (Online/Remoto etc): filtra por disponibilidade
+    # Modalidade: precisa ter ao menos 1 slot com esse mode
     if mode:
         query = query.join(
             AvailabilitySlot, AvailabilitySlot.profile_id == ProfessionalProfile.id
