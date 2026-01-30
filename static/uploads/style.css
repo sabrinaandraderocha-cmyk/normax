@@ -1,0 +1,35 @@
+/* =========================================
+   Normax Navbar - ajuste mobile do "logo"
+   ========================================= */
+
+/* Evita altura fixa e garante respiro */
+.normax-navbar .container {
+  align-items: flex-start;
+  gap: 12px;
+}
+
+/* Texto do "logo" (APP_NAME) */
+.normax-brand {
+  display: block;
+  line-height: 1.15;
+  white-space: normal;     /* ✅ permite quebrar linha */
+  overflow: visible;       /* ✅ não corta */
+  word-break: break-word;  /* ✅ quebra palavras muito longas */
+  max-width: 72vw;         /* ✅ reserva espaço pro hambúrguer */
+}
+
+/* Em telas maiores, pode ficar em uma linha */
+@media (min-width: 992px) {
+  .normax-brand {
+    white-space: nowrap;
+    max-width: none;
+  }
+}
+
+/* Mobile: dá um pouco mais de controle */
+@media (max-width: 480px) {
+  .normax-brand {
+    font-size: 1rem;   /* ~16px */
+    max-width: 68vw;
+  }
+}
