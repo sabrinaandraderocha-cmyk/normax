@@ -1,0 +1,38 @@
+/* Evita corte do nome no celular */
+.navbar .container{
+  display:flex;
+  align-items:flex-start;
+  justify-content:space-between;
+  gap:10px;
+  flex-wrap:wrap;
+}
+
+.navbar-brand{
+  display:block;
+  font-weight:800;
+  line-height:1.15;
+  white-space:normal;
+  word-break:break-word;
+  overflow:visible;
+  max-width:calc(100% - 64px);
+  padding-right:6px;
+  margin-right:0;
+}
+
+.navbar-collapse{
+  width:100%;
+}
+
+@media (min-width: 992px){
+  .navbar .container{
+    flex-wrap:nowrap;
+    align-items:center;
+  }
+  .navbar-brand{
+    white-space:nowrap;
+    max-width:none;
+  }
+  .navbar-collapse{
+    width:auto;
+  }
+}
